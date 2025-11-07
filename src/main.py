@@ -1,4 +1,5 @@
 import pygame
+import sys
 from game import Game
 
 def main():
@@ -15,6 +16,7 @@ def main():
         game.update(dt)
         game.render()
     pygame.quit()
+    sys.exit()
 
 if __name__ == "__main__":
     main()

@@ -7,7 +7,7 @@ class PlayerState:
         # track purchased upgrades (ids)
         self.purchased_upgrades = []
 
-    def to_dict(self):
+    def ToDict(self):
         return {
             "points": self.points,
             "click_power": self.click_power,
@@ -16,7 +16,7 @@ class PlayerState:
         }
 
     @classmethod
-    def from_dict(cls, d):
+    def FromDict(cls, d):
         p = cls()
         p.points = d.get("points", 0.0)
         p.click_power = d.get("click_power", 1.0)
