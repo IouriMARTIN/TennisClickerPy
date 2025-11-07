@@ -1,0 +1,16 @@
+{
+  "player": {
+    "points": 1234.5,
+    "click_power": 2.0,
+    "global_multiplier": 1.25,
+    "purchased_upgrades": ["click_upgrade_1"]
+  },
+  "shop": {
+    "buildings": {
+      "ball_launcher": {"count": 3, "base_price": 100},
+      "racket_factory": {"count": 1, "base_price": 1000}
+    },
+    "upgrades": {"click_upgrade_1": {"bought": true}}
+  },
+  "timestamp": "2025-11-07T14:00:00"
+}

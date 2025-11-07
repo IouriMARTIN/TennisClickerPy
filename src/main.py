@@ -1,16 +1,20 @@
 import pygame
-import sys
+from game import Game
 
-pygame.init()
-screen = pygame.display.set_mode((1000, 800))
-clock = pygame.time.Clock()
+def main():
+    pygame.init()
+    screen = pygame.display.set_mode((1280, 720))
+    pygame.display.set_caption("Tennis Clicker")
+    clock = pygame.time.Clock()
 
-while True:
-    screen.fill((0, 0, 0))
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
- 
-    pygame.display.flip()
-    clock.tick(60)
+    game = Game(screen)
+
+    while game.running:
+        dt = clock.tick(60) / 1000.0  # seconds
+        game.handle_events()
+        game.update(dt)
+        game.render()
+    pygame.quit()
+
+if __name__ == "__main__":
+    main()
