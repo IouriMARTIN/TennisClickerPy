@@ -9,8 +9,7 @@ class SaveManager:
     def save(self, player_state, shop):
         data = {
             "player": player_state.to_dict(),
-            "shop": shop.to_dict(),
-            # optionally time stamp
+            "shop": shop.to_dict()
         }
         with open(self.path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
