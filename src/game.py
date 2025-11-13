@@ -11,6 +11,7 @@ class Game:
         self.screen = screen
         self.running = True
         self.state = "MENU"  # MENU, RUNNING, CREDITS
+        self.previous_state = None  # track if we came from RUNNING (paused)
         self.ui = UIManager(screen)
         self.player = PlayerState()
         self.save_manager = SaveManager("saves/save_slot_1.json")
@@ -20,16 +21,66 @@ class Game:
         self.clickable = ClickableArea(center, 110, self.player)
         self.physics = PhysicsManager()
         self.unsaved_changes = False  # Track unsaved changes
-        # register simple buttons
-        self.ui.add_button("start", (50,50,140,40), "Start", self.start_game)
-        self.ui.add_button("save", (50,100,140,40), "Save", self.save_game)
-        self.ui.add_button("load", (50,150,140,40), "Load", self.load_game)
-        self.ui.add_button("quit", (50,200,140,40), "Quit", self.quit_game)
+        
+        # calculate centered button positions (screen width = 1280)
+        screen_width = self.screen.get_width()
+        center_x = screen_width // 2
+        start_y = 150
+        button_spacing = 70
+        
+        # Start button is larger
+        start_btn_width = 200
+        start_btn_height = 60
+        start_rect = (center_x - start_btn_width // 2, start_y, start_btn_width, start_btn_height)
+        
+        # Other buttons are standard size
+        btn_width = 140
+        btn_height = 40
+        
+        # register menu buttons (shown in MENU state)
+        self.ui.add_button("start", start_rect, "Start", self.start_game)
+        save_rect = (center_x - btn_width // 2, start_y + button_spacing + 30, btn_width, btn_height)
+        self.ui.add_button("save", save_rect, "Save", self.save_game)
+        load_rect = (center_x - btn_width // 2, start_y + button_spacing * 2 + 30, btn_width, btn_height)
+        self.ui.add_button("load", load_rect, "Load", self.load_game)
+        credits_rect = (center_x - btn_width // 2, start_y + button_spacing * 3 + 30, btn_width, btn_height)
+        self.ui.add_button("credits", credits_rect, "Credits", self.show_credits)
+        quit_rect = (center_x - btn_width // 2, start_y + button_spacing * 4 + 30, btn_width, btn_height)
+        self.ui.add_button("quit", quit_rect, "Quit", self.quit_game)
+        
+        # register pause button (shown during RUNNING state) - top-left corner
+        pause_rect = (10, 10, btn_width, btn_height)
+        self.ui.add_button("pause", pause_rect, "Pause", self.pause_game)
+        
+        # register back button (shown during CREDITS state)
+        back_rect = (10, 10, btn_width, btn_height)
+        self.ui.add_button("back", back_rect, "Back", self.back_to_menu)
+        
         # shop UI positions
         self.shop.set_ui_positions(900, 120)
+        # initialize button visibility for MENU state
+        self.ui.set_buttons_visible_for_state("MENU")
 
     def start_game(self):
         self.state = "RUNNING"
+        self.previous_state = "RUNNING"
+        self.ui.set_buttons_visible_for_state("RUNNING")
+
+    def pause_game(self):
+        self.previous_state = self.state
+        self.state = "MENU"
+        self.ui.set_buttons_visible_for_state("MENU")
+        # change Start button to Resume if we came from RUNNING
+        if self.previous_state == "RUNNING":
+            self.ui.buttons["start"].set_text("Resume")
+
+    def show_credits(self):
+        self.state = "CREDITS"
+        self.ui.set_buttons_visible_for_state("CREDITS")
+
+    def back_to_menu(self):
+        self.state = "MENU"
+        self.ui.set_buttons_visible_for_state("MENU")
 
     def save_game(self):
         self.save_manager.save(self.player, self.shop)
@@ -91,10 +142,15 @@ class Game:
             except Exception as e:
                 print("Shop update error:", e)
             self.unsaved_changes = True  # Mark changes as unsaved when game updates
+            # update clickable animation
+            try:
+                self.clickable.update(dt)
+            except Exception as e:
+                print("Clickable update error:", e)
         self.ui.update(dt)
 
-    def render(self):
-        # draw background image if available, else fallback to court green
+    def _draw_background(self):
+        """Draw background image or green court."""
         if not hasattr(self, "background"):
             try:
                 img = pygame.image.load("assets/background.png")
@@ -109,10 +165,10 @@ class Game:
             bg = pygame.transform.scale(self.background, self.screen.get_size())
             self.screen.blit(bg, (0, 0))
         else:
-            self.screen.fill((20, 110, 20))  # tennis-court green
-        # draw clickable area (tennis ball) -- drawing moved below after loading images so clickable
-        # can use the same `ball.png` / `ball-hover.png` images if available.
-        # draw bouncing balls using images (ball.png / ball-hover.png when hovered)
+            self.screen.fill((20, 110, 20))
+
+    def _load_ball_images(self):
+        """Load ball images (cached on first call)."""
         if not hasattr(self, "_ball_img"):
             try:
                 img = pygame.image.load("assets/ball.png")
@@ -135,6 +191,10 @@ class Game:
         if not hasattr(self, "_ball_scaled_cache"):
             self._ball_scaled_cache = {}
 
+    def _render_running_state(self):
+        """Render game during RUNNING state: balls, shop, clickable, points."""
+        self._load_ball_images()
+
         for ball in self.shop.ball_entities:
             # determine position
             pos = None
@@ -150,7 +210,7 @@ class Game:
             elif hasattr(ball, "x") and hasattr(ball, "y"):
                 pos = (int(ball.x), int(ball.y))
 
-            # determine approximate size (prefer radius, fallback to rect or size)
+            # determine approximate size
             size = None
             if hasattr(ball, "radius"):
                 r = getattr(ball, "radius")
@@ -181,7 +241,6 @@ class Game:
             img = self._ball_hover_img if hovered else self._ball_img
 
             if img and pos:
-                # scale and cache image for this size
                 surf = img
                 if size:
                     key = (id(img), size[0], size[1])
@@ -197,15 +256,15 @@ class Game:
                 rect = surf.get_rect(center=pos)
                 self.screen.blit(surf, rect)
             else:
-                # fallback to existing draw method if present
                 try:
                     ball.draw(self.screen)
                 except Exception:
                     pass
-        # draw shop and UI
+
+        # draw shop panel (buildings on the right)
         self.shop.draw(self.screen)
 
-        # pass loaded ball images to clickable area so it can draw with images and hover
+        # pass loaded ball images to clickable area
         try:
             if hasattr(self, "_ball_img"):
                 self.clickable._ball_img = self._ball_img
@@ -214,15 +273,65 @@ class Game:
         except Exception:
             pass
 
-        # now draw the clickable area (uses image if available)
+        # draw clickable ball
         try:
             self.clickable.draw(self.screen)
         except Exception as e:
             print("Clickable draw error:", e)
 
-        self.ui.draw(self.screen, self.player)
+        # draw click power below the ball
+        font_small = pygame.font.SysFont(None, 24)
+        click_power_txt = font_small.render(f"Click power: {self.player.click_power}", True, (255,255,255))
+        ball_y = self.clickable.y + int(self.clickable.radius * self.clickable.scale) + 20
+        self.screen.blit(click_power_txt, (self.clickable.x - click_power_txt.get_width() // 2, ball_y))
+
         # draw points top-center
         font = pygame.font.SysFont(None, 36)
         txt = font.render(f"Points: {int(self.player.points)}", True, (255,255,255))
         self.screen.blit(txt, (540, 20))
+
+    def _render_menu_state(self):
+        """Render menu state: background with darkening overlay."""
+        # draw a semi-transparent dark overlay over the game
+        overlay = pygame.Surface(self.screen.get_size())
+        overlay.set_alpha(180)
+        overlay.fill((0, 0, 0))
+        self.screen.blit(overlay, (0, 0))
+
+    def _render_credits_state(self):
+        """Render credits state: background and credits text."""
+        # draw a semi-transparent dark overlay
+        overlay = pygame.Surface(self.screen.get_size())
+        overlay.set_alpha(180)
+        overlay.fill((0, 0, 0))
+        self.screen.blit(overlay, (0, 0))
+        
+        font = pygame.font.SysFont(None, 36)
+        title = font.render("Credits", True, (255,255,255))
+        self.screen.blit(title, (self.screen.get_width() // 2 - title.get_width() // 2, 50))
+
+        credits_text = "Tennis Clicker\nDeveloped with Pygame"
+        small_font = pygame.font.SysFont(None, 24)
+        y = 150
+        for line in credits_text.split("\n"):
+            txt = small_font.render(line, True, (255,255,255))
+            self.screen.blit(txt, (self.screen.get_width() // 2 - txt.get_width() // 2, y))
+            y += 40
+
+    def render(self):
+        """Main render method: draw background, game state content, then overlay menu/credits."""
+        self._draw_background()
+
+        # always render the game state in the background
+        self._render_running_state()
+
+        # if paused or in credits, render overlay on top
+        if self.state == "MENU":
+            self._render_menu_state()
+        elif self.state == "CREDITS":
+            self._render_credits_state()
+
+        # draw UI buttons (menu, pause, etc.)
+        self.ui.draw(self.screen, self.player)
+
         pygame.display.flip()

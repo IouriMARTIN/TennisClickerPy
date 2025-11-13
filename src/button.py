@@ -9,6 +9,10 @@ class Button:
         self.hover = False
         self.pressed = False
 
+    def set_text(self, text):
+        """Update button text dynamically."""
+        self.text = text
+
     def handle_event(self, event):
         if event.type == pygame.MOUSEMOTION:
             self.hover = self.rect.collidepoint(event.pos)
