@@ -6,16 +6,15 @@ class SaveManager:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
 
-    def Save(self, player_state, shop):
+    def save(self, player_state, shop):
         data = {
-            "player": player_state.ToDict(),
-            "shop": shop.ToDict(),
-            # optionally time stamp
+            "player": player_state.to_dict(),
+            "shop": shop.to_dict()
         }
         with open(self.path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
 
-    def Load(self):
+    def load(self):
         if not self.path.exists():
             return None
         with open(self.path, "r", encoding="utf-8") as f:
