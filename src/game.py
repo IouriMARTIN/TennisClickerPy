@@ -191,6 +191,36 @@ class Game:
         if not hasattr(self, "_ball_scaled_cache"):
             self._ball_scaled_cache = {}
 
+        # load pause button images (optional) and attach them to the pause button
+        try:
+            pause_btn = self.ui.buttons.get("pause")
+            if pause_btn is not None and not hasattr(pause_btn, "_img"):
+                try:
+                    pimg = pygame.image.load("assets/pause-btn.png")
+                    try:
+                        pause_btn._img = pimg.convert_alpha()
+                    except Exception:
+                        pause_btn._img = pimg.convert()
+                except Exception:
+                    pause_btn._img = None
+                # Use the same image for hover state as requested
+                try:
+                    pause_btn._img_hover = pause_btn._img
+                except Exception:
+                    pause_btn._img_hover = None
+                # if we successfully loaded a pause image, resize the button rect to the image's native size
+                try:
+                    if pause_btn._img:
+                        w, h = pause_btn._img.get_size()
+                        # keep the button at top-left (10,10)
+                        pause_btn.rect.width = w
+                        pause_btn.rect.height = h
+                        pause_btn.rect.topleft = (20, 20)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
     def _render_running_state(self):
         """Render game during RUNNING state: balls, shop, clickable, points."""
         self._load_ball_images()
