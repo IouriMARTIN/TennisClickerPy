@@ -31,7 +31,10 @@ class Game:
         # Start button is larger
         start_btn_width = 200
         start_btn_height = 60
-        start_rect = (center_x - start_btn_width // 2, start_y, start_btn_width, start_btn_height)
+        start_rect = (center_x - start_btn_width // 2, 
+                      start_y, 
+                      start_btn_width, 
+                      start_btn_height)
         
         # Other buttons are standard size
         btn_width = 140
@@ -39,14 +42,32 @@ class Game:
         
         # register menu buttons (shown in MENU state)
         self.ui.add_button("start", start_rect, "Start", self.start_game)
-        save_rect = (center_x - btn_width // 2, start_y + button_spacing + 30, btn_width, btn_height)
+        save_rect = (center_x - btn_width // 2, 
+                     start_y + button_spacing + 30, 
+                     btn_width, 
+                     btn_height)
         self.ui.add_button("save", save_rect, "Save", self.save_game)
-        load_rect = (center_x - btn_width // 2, start_y + button_spacing * 2 + 30, btn_width, btn_height)
+        load_rect = (center_x - btn_width // 2, 
+                     start_y + button_spacing * 2 + 30, 
+                     btn_width, 
+                     btn_height)
         self.ui.add_button("load", load_rect, "Load", self.load_game)
-        credits_rect = (center_x - btn_width // 2, start_y + button_spacing * 3 + 30, btn_width, btn_height)
-        self.ui.add_button("credits", credits_rect, "Credits", self.show_credits)
-        quit_rect = (center_x - btn_width // 2, start_y + button_spacing * 4 + 30, btn_width, btn_height)
-        self.ui.add_button("quit", quit_rect, "Quit", self.quit_game)
+        credits_rect = (center_x - btn_width // 2, 
+                        start_y + button_spacing * 3 + 30, 
+                        btn_width, 
+                        btn_height)
+        self.ui.add_button("credits", 
+                           credits_rect, 
+                           "Credits", 
+                           self.show_credits)
+        quit_rect = (center_x - btn_width // 2, 
+                     start_y + button_spacing * 4 + 30, 
+                     btn_width, 
+                     btn_height)
+        self.ui.add_button("quit", 
+                           quit_rect, 
+                           "Quit", 
+                           self.quit_game)
         
         # register pause button (shown during RUNNING state) - top-left corner
         pause_rect = (10, 10, btn_width, btn_height)
@@ -162,7 +183,8 @@ class Game:
                 self.background = None
 
         if self.background:
-            bg = pygame.transform.scale(self.background, self.screen.get_size())
+            bg = pygame.transform.scale(self.background, 
+                                        self.screen.get_size())
             self.screen.blit(bg, (0, 0))
         else:
             self.screen.fill((20, 110, 20))
@@ -276,10 +298,14 @@ class Game:
                     key = (id(img), size[0], size[1])
                     if key not in self._ball_scaled_cache:
                         try:
-                            self._ball_scaled_cache[key] = pygame.transform.smoothscale(img, size)
+                            self._ball_scaled_cache[key] = (
+                                pygame.transform.smoothscale(img, size)
+                                )
                         except Exception:
                             try:
-                                self._ball_scaled_cache[key] = pygame.transform.scale(img, size)
+                                self._ball_scaled_cache[key] = (
+                                    pygame.transform.scale(img, size)
+                                    )
                             except Exception:
                                 self._ball_scaled_cache[key] = img
                     surf = self._ball_scaled_cache[key]
@@ -311,13 +337,25 @@ class Game:
 
         # draw click power below the ball
         font_small = pygame.font.SysFont(None, 24)
-        click_power_txt = font_small.render(f"Click power: {self.player.click_power}", True, (255,255,255))
-        ball_y = self.clickable.y + int(self.clickable.radius * self.clickable.scale) + 20
-        self.screen.blit(click_power_txt, (self.clickable.x - click_power_txt.get_width() // 2, ball_y))
+        click_power_txt = font_small.render(
+            f"Click power: {self.player.click_power}", 
+            True, 
+            (255,255,255)
+            )
+        ball_y = self.clickable.y + int(
+            self.clickable.radius * self.clickable.scale
+            ) + 20
+        self.screen.blit(
+            click_power_txt, 
+            (self.clickable.x - click_power_txt.get_width() // 2, 
+            ball_y)
+            )
 
         # draw points top-center
         font = pygame.font.SysFont(None, 36)
-        txt = font.render(f"Points: {int(self.player.points)}", True, (255,255,255))
+        txt = font.render(
+            f"Points: {int(self.player.points)}", True, (255,255,255)
+            )
         self.screen.blit(txt, (540, 20))
 
     def _render_menu_state(self):
@@ -338,18 +376,27 @@ class Game:
         
         font = pygame.font.SysFont(None, 36)
         title = font.render("Credits", True, (255,255,255))
-        self.screen.blit(title, (self.screen.get_width() // 2 - title.get_width() // 2, 50))
+        self.screen.blit(
+            title, 
+            (self.screen.get_width() // 2 - title.get_width() // 2, 50)
+            )
 
         credits_text = "Tennis Clicker\nDeveloped with Pygame"
         small_font = pygame.font.SysFont(None, 24)
         y = 150
         for line in credits_text.split("\n"):
             txt = small_font.render(line, True, (255,255,255))
-            self.screen.blit(txt, (self.screen.get_width() // 2 - txt.get_width() // 2, y))
+            self.screen.blit(
+                txt, 
+                (self.screen.get_width() // 2 - txt.get_width() // 2, y)
+                )
             y += 40
 
     def render(self):
-        """Main render method: draw background, game state content, then overlay menu/credits."""
+        """Main render method: 
+        draw background, 
+        game state content, 
+        then overlay menu/credits."""
         self._draw_background()
 
         # always render the game state in the background
