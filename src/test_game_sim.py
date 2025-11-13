@@ -9,7 +9,8 @@ game.start_game()
 # initial points
 print('points before:', game.player.points)
 # simulate mouse click at clickable center
-evt = pygame.event.Event(pygame.MOUSEBUTTONDOWN, {'pos': (640,280), 'button': 1})
+evt = pygame.event.Event(pygame.MOUSEBUTTONDOWN, {'pos': (640,280), 
+                                                  'button': 1})
 pygame.event.post(evt)
 # handle events
 game.handle_events()

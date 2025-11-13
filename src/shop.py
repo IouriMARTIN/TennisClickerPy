@@ -7,12 +7,28 @@ class Shop:
     def __init__(self, player):
         self.player = player
         self.buildings = {
-            "ball_launcher": Building("ball_launcher", "Ball Launcher", base_price=50, count=0, production_per_second=0.5),
-            "racket_factory": Building("racket_factory", "Racket Factory", base_price=300, count=0, production_per_second=4.0),
-            "color_ball_maker": Building("color_ball_maker", "Color Ball Maker", base_price=1200, count=0, production_per_second=12.0)
+            "ball_launcher": Building("ball_launcher", 
+                                      "Ball Launcher", 
+                                      base_price=50, 
+                                      count=0, 
+                                      production_per_second=0.5),
+            "racket_factory": Building("racket_factory", 
+                                       "Racket Factory", 
+                                       base_price=300, 
+                                       count=0, 
+                                       production_per_second=4.0),
+            "color_ball_maker": Building("color_ball_maker", 
+                                         "Color Ball Maker", 
+                                         base_price=1200, 
+                                         count=0, 
+                                         production_per_second=12.0)
         }
         self.upgrades = {
-            "click_up_1": Upgrade("click_up_1", "Better Swing", "Increase click power x2", price=200, bought=False)
+            "click_up_1": Upgrade("click_up_1", 
+                                  "Better Swing", 
+                                  "Increase click power x2", 
+                                  price=200, 
+                                  bought=False)
         }
         self.ball_entities = []
         self.ui_x = 900
@@ -74,7 +90,11 @@ class Shop:
 
     def draw(self, screen):
         # draw shop panel
-        pygame.draw.rect(screen, (40,40,40), (self.ui_x-10, self.ui_y-10, 300, 260), border_radius=8)
+        pygame.draw.rect(screen, 
+                         (40,40,40), 
+                         (self.ui_x-10, 
+                          self.ui_y-10, 300, 260), 
+                          border_radius=8)
         i = 0
         for b in self.buildings.values():
             rect = pygame.Rect(self.ui_x, self.ui_y + i*70, 260, 60)
@@ -91,7 +111,9 @@ class Shop:
         for u in self.upgrades.values():
             rect = pygame.Rect(self.ui_x, uy, 260, 40)
             pygame.draw.rect(screen, (80,80,120), rect, border_radius=6)
-            txt = self.font.render(f"{u.name} - {u.price}", True, (255,255,255))
+            txt = self.font.render(f"{u.name} - {u.price}", 
+                                   True, 
+                                   (255,255,255))
             screen.blit(txt, (rect.x+8, rect.y+8))
             uy += 50
 
@@ -99,7 +121,12 @@ class Shop:
         return {
             "buildings": {k: v.to_dict() for k,v in self.buildings.items()},
             "upgrades": {k: v.to_dict() for k,v in self.upgrades.items()},
-            "balls": [{"x": b.x, "y": b.y, "vx": b.vx, "vy": b.vy, "radius": b.radius, "value": b.value} for b in self.ball_entities]
+            "balls": [{"x": b.x, 
+                       "y": b.y, 
+                       "vx": b.vx, 
+                       "vy": b.vy, 
+                       "radius": b.radius, 
+                       "value": b.value} for b in self.ball_entities]
         }
 
     def from_dict(self, d, physics=None):
@@ -113,5 +140,10 @@ class Shop:
                 self.upgrades[k].bought = v.get("bought", False)
         self.ball_entities = []
         for bd in d.get("balls", []):
-            be = BallEntity(bd.get("x",400), bd.get("y",300), bd.get("vx",0), bd.get("vy",0), radius=bd.get("radius",12), value=bd.get("value",1.0))
+            be = BallEntity(bd.get("x",400), 
+                            bd.get("y",300), 
+                            bd.get("vx",0), 
+                            bd.get("vy",0), 
+                            radius=bd.get("radius",12), 
+                            value=bd.get("value",1.0))
             self.ball_entities.append(be)

@@ -36,4 +36,10 @@ class Button:
         pygame.draw.rect(screen, color, self.rect, border_radius=6)
         txt = self.font.render(self.text, True, (0,0,0))
         tw, th = txt.get_size()
-        screen.blit(txt, (self.rect.x + (self.rect.w - tw)//2, self.rect.y + (self.rect.h - th)//2))
+        screen.blit(
+            txt, 
+            (
+                self.rect.x + (self.rect.w - tw)//2, 
+                self.rect.y + (self.rect.h - th)//2
+                )
+            )

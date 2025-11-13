@@ -29,5 +29,17 @@ class BallEntity:
             self.vy += (random.random()-0.5)*30
 
     def draw(self, screen):
-        pygame.draw.circle(screen, (255,225,25), (int(self.x), int(self.y)), self.radius)
-        pygame.draw.circle(screen, (255,255,255), (int(self.x), int(self.y)), self.radius, 2)
+        pygame.draw.circle(
+            screen, 
+            (255,225,25), 
+            (int(self.x), 
+             int(self.y)), 
+             self.radius
+            )
+        pygame.draw.circle(
+            screen, 
+            (255,255,255), 
+            (int(self.x), 
+             int(self.y)), 
+             self.radius, 2
+            )
