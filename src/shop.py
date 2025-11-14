@@ -35,15 +35,20 @@ class Shop:
         self.font = pygame.font.SysFont(None, 32)
         self.font_small = pygame.font.SysFont(None, 20)
 
-        # LOAD SHOP BG
+        # LOAD SHOP BG (350x700px)
         try:
             self.shop_bg = pygame.image.load("assets/shop-bg.png").convert_alpha()
         except:
             self.shop_bg = None
 
-        # Position - always use fixed size for consistency
-        self.shop_bg_rect = self.shop_bg.get_rect()
-        self.shop_bg_rect.right = self.screen_width - 50
+        # Create rect for positioning - use original size
+        if self.shop_bg:
+            self.shop_bg_rect = self.shop_bg.get_rect()
+        else:
+            self.shop_bg_rect = pygame.Rect(0, 0, 350, 700)
+
+        # Position at top-right
+        self.shop_bg_rect.right = self.screen_width - 20
         self.shop_bg_rect.top = 0
 
         # Initialize ui_x and ui_y for compatibility
@@ -80,6 +85,7 @@ class Shop:
         """Defines where the shop UI panel is drawn."""
         self.ui_x = x
         self.ui_y = y
+        # IMPORTANT: Also update shop_bg_rect position
         self.shop_bg_rect.x = x
         self.shop_bg_rect.y = y
 
@@ -105,9 +111,10 @@ class Shop:
             # BUILDING CLICKS
             i = 0
             for bid, b in self.buildings.items():
+                # Center cards in 350px wide background: (350 - 260) / 2 = 45px offset
                 rect = pygame.Rect(
-                    self.shop_bg_rect.x + 20,
-                    self.shop_bg_rect.y + 30 + i * 75,
+                    self.shop_bg_rect.x + 45,
+                    self.shop_bg_rect.y + 150 + i * 75,
                     260,
                     70
                 )
@@ -118,10 +125,10 @@ class Shop:
             # UPGRADE CLICK
             if self.current_upgrade_index < len(self.upgrade_list):
                 up_rect = pygame.Rect(
-                    self.shop_bg_rect.x + 20,
-                    self.shop_bg_rect.y + 30 + len(self.buildings) * 75 + 10,
-                    260,
-                    80
+                    self.shop_bg_rect.x + 75,
+                    self.shop_bg_rect.y + 140 + len(self.buildings) * 75 + 10,
+                    200,
+                    60
                 )
                 if up_rect.collidepoint(mx, my):
                     self.attempt_buy_upgrade()
@@ -247,9 +254,10 @@ class Shop:
         # BUILDING SLOTS
         i = 0
         for bid, b in self.buildings.items():
+            # Center cards in 350px wide background: (350 - 260) / 2 = 45px offset
             rect = pygame.Rect(
-                self.shop_bg_rect.x + 20,
-                self.shop_bg_rect.y + 30 + i * 75,
+                self.shop_bg_rect.x + 45,
+                self.shop_bg_rect.y + 150 + i * 75,
                 260,
                 70
             )
@@ -271,7 +279,7 @@ class Shop:
             screen.blit(price, (rect.x + 12, rect.bottom - 32))
 
             # Count (bottom right in brown)
-            count = self.font.render(f"x{b.count}", True, (105, 69, 33))
+            count = self.font.render(f"x{b.count}", True, (66, 43, 21))
             count_rect = count.get_rect(bottomright=(rect.right - 12, rect.bottom - 10))
             screen.blit(count, count_rect)
 
@@ -282,10 +290,10 @@ class Shop:
             u = self.upgrade_list[self.current_upgrade_index]
 
             rect = pygame.Rect(
-                self.shop_bg_rect.x + 20,
-                self.shop_bg_rect.y + 30 + len(self.buildings) * 75 + 10,
-                260,
-                80
+                self.shop_bg_rect.x + 75,
+                self.shop_bg_rect.y + 140 + len(self.buildings) * 75 + 10,
+                200,
+                60
             )
 
             pygame.draw.rect(screen, (80, 60, 120), rect, border_radius=10)
@@ -296,7 +304,7 @@ class Shop:
             screen.blit(title, trect)
 
             # Price bottom left
-            price = self.font.render(f"{u.price}$", True, (230, 230, 230))
+            price = self.font.render(f"{u.price}$", True, (255, 220, 100))
             screen.blit(price, (rect.x + 12, rect.bottom - 28))
 
     def to_dict(self):

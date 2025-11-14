@@ -79,7 +79,7 @@ class Game:
         self.ui.add_button("back", back_rect, "Back", self.back_to_menu)
         
         # shop UI positions
-        self.shop.set_ui_positions(900, 120)
+        self.shop.set_ui_positions(900, 0)
         # initialize button visibility for MENU state
         self.ui.set_buttons_visible_for_state("MENU")
 
@@ -398,10 +398,12 @@ class Game:
 
         # draw points top-center
         font = pygame.font.SysFont(None, 36)
+        points_bg = pygame.image.load("assets/points.png").convert_alpha()
         txt = font.render(
-            f"Points: {int(self.player.points)}", True, (255,255,255)
+            f"{int(self.player.points)}", True, (255,255,255)
             )
-        self.screen.blit(txt, (540, 20))
+        self.screen.blit(points_bg, (510, 20))
+        self.screen.blit(txt, (540, 55))
 
     def _render_menu_state(self):
         """Render menu state: background with darkening overlay."""
@@ -426,7 +428,7 @@ class Game:
             (self.screen.get_width() // 2 - title.get_width() // 2, 50)
             )
 
-        credits_text = "Tennis Clicker\nDeveloped with Pygame"
+        credits_text = "Tennis Clicker\nDeveloped by Cécile Baslé and Iouri Martin with Pygame"
         small_font = pygame.font.SysFont(None, 24)
         y = 150
         for line in credits_text.split("\n"):
