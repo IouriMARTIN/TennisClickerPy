@@ -1,4 +1,3 @@
-# building.py
 from dataclasses import dataclass
 
 @dataclass
@@ -23,7 +22,6 @@ class Building:
 
     @classmethod
     def from_dict(cls, d):
-        # ensure id becomes int if possible
         bid = d.get("id", None)
         try:
             bid = int(bid)

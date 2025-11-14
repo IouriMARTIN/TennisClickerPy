@@ -8,7 +8,6 @@ class Button:
         self.font = font
         self.hover = False
         self.pressed = False
-        # cache for scaled images when this button uses image assets
         self._img_cache = {}
 
     def set_text(self, text):
@@ -29,32 +28,29 @@ class Button:
                     print("Button callback error:", e)
             self.pressed = False
 
+    def drawButtonImg(self, img, screen):
+        img_hover = getattr(self, "_img_hover", None)
+        chosen = img_hover if (
+            self.hover and img_hover is not None
+            ) else img
+        scale = 1.12 if self.hover else 1.0
+        target_w = max(1, int(self.rect.w * scale))
+        target_h = max(1, int(self.rect.h * scale))
+        key = (id(chosen), target_w, target_h)
+        surf = self._img_cache.get(key)
+        if surf is None:
+            surf = pygame.transform.smoothscale(
+                chosen, (target_w, target_h)
+                )
+            self._img_cache[key] = surf
+        rect = surf.get_rect(center=self.rect.center)
+        screen.blit(surf, rect)
+
     def draw(self, screen):
-        # If this button has an image assigned, draw the image (with hover variant and slight scale)
         img = getattr(self, "_img", None)
         if img:
-            img_hover = getattr(self, "_img_hover", None)
-            chosen = img_hover if (self.hover and img_hover is not None) else img
-            # enlarge slightly on hover
-            scale = 1.12 if self.hover else 1.0
-            target_w = max(1, int(self.rect.w * scale))
-            target_h = max(1, int(self.rect.h * scale))
-            key = (id(chosen), target_w, target_h)
-            surf = self._img_cache.get(key)
-            if surf is None:
-                try:
-                    surf = pygame.transform.smoothscale(chosen, (target_w, target_h))
-                except Exception:
-                    try:
-                        surf = pygame.transform.scale(chosen, (target_w, target_h))
-                    except Exception:
-                        surf = chosen
-                self._img_cache[key] = surf
-            rect = surf.get_rect(center=self.rect.center)
-            screen.blit(surf, rect)
+            self.drawButtonImg(img, screen)
             return
-
-        # fallback to default drawn button
         color = (255, 252, 94)
         if self.pressed:
             color = (174, 191, 75)
