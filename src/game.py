@@ -19,6 +19,7 @@ class Game:
         # center the clickable ball on the screen and make it a bit larger
         center = (self.screen.get_width() // 2, self.screen.get_height() // 2)
         self.clickable = ClickableArea(center, 110, self.player)
+        self.shop.set_clickable(self.clickable)
         self.physics = PhysicsManager()
         self.unsaved_changes = False  # Track unsaved changes
         
@@ -191,24 +192,32 @@ class Game:
 
     def _load_ball_images(self):
         """Load ball images (cached on first call)."""
-        if not hasattr(self, "_ball_img"):
-            try:
-                img = pygame.image.load("assets/ball.png")
+        if not hasattr(self, "_ball_img_map"):
+            self._ball_img_map = {}
+            for i in range(1, 7):
+                filename = "assets/ball.png" if i == 1 else f"assets/ball-{i}.png"
                 try:
-                    self._ball_img = img.convert_alpha()
+                    img = pygame.image.load(filename)
+                    try:
+                        self._ball_img_map[i] = img.convert_alpha()
+                    except Exception:
+                        self._ball_img_map[i] = img.convert()
                 except Exception:
-                    self._ball_img = img.convert()
-            except Exception:
-                self._ball_img = None
-        if not hasattr(self, "_ball_hover_img"):
-            try:
-                img = pygame.image.load("assets/ball-hover.png")
+                    self._ball_img_map[i] = None
+
+        if not hasattr(self, "_ball_hover_img_map"):
+            # optional: try to load hover variants like ball-hover.png or ball-2-hover.png
+            self._ball_hover_img_map = {}
+            for i in range(1, 7):
+                hfile = "assets/ball-hover.png" if i == 1 else f"assets/ball-{i}-hover.png"
                 try:
-                    self._ball_hover_img = img.convert_alpha()
+                    himg = pygame.image.load(hfile)
+                    try:
+                        self._ball_hover_img_map[i] = himg.convert_alpha()
+                    except Exception:
+                        self._ball_hover_img_map[i] = himg.convert()
                 except Exception:
-                    self._ball_hover_img = img.convert()
-            except Exception:
-                self._ball_hover_img = None
+                    self._ball_hover_img_map[i] = None
 
         if not hasattr(self, "_ball_scaled_cache"):
             self._ball_scaled_cache = {}
@@ -290,7 +299,31 @@ class Game:
                 except Exception:
                     hovered = False
 
-            img = self._ball_hover_img if hovered else self._ball_img
+            # pick image: priority -> ball.img, then mapping by 'type_id' attribute, else fallback to default
+            img = None
+            if hasattr(ball, "img") and ball.img:
+                img = ball.img
+            else:
+                # if BallEntity has a type_id (building id), try to use our loaded map
+                type_id = getattr(ball, "type_id", None)
+                if type_id is None:
+                    # try to infer from radius / value? skip
+                    type_id = None
+                if type_id and hasattr(self, "_ball_img_map"):
+                    img = self._ball_img_map.get(type_id)
+                else:
+                    # fallback to the first ball image
+                    img = next(iter(self._ball_img_map.values())) if hasattr(self, "_ball_img_map") else None
+
+            # if hovered, try hover variant
+            if hovered:
+                hover_img = None
+                if hasattr(ball, "img_hover") and ball.img_hover:
+                    hover_img = ball.img_hover
+                elif hasattr(self, "_ball_hover_img_map") and type_id:
+                    hover_img = self._ball_hover_img_map.get(type_id)
+                if hover_img:
+                    img = hover_img
 
             if img and pos:
                 surf = img
@@ -298,14 +331,10 @@ class Game:
                     key = (id(img), size[0], size[1])
                     if key not in self._ball_scaled_cache:
                         try:
-                            self._ball_scaled_cache[key] = (
-                                pygame.transform.smoothscale(img, size)
-                                )
+                            self._ball_scaled_cache[key] = pygame.transform.smoothscale(img, size)
                         except Exception:
                             try:
-                                self._ball_scaled_cache[key] = (
-                                    pygame.transform.scale(img, size)
-                                    )
+                                self._ball_scaled_cache[key] = pygame.transform.scale(img, size)
                             except Exception:
                                 self._ball_scaled_cache[key] = img
                     surf = self._ball_scaled_cache[key]
@@ -317,17 +346,33 @@ class Game:
                 except Exception:
                     pass
 
+
         # draw shop panel (buildings on the right)
         self.shop.draw(self.screen)
 
-        # pass loaded ball images to clickable area
+                # pass a default ball image to clickable area (if available)
         try:
-            if hasattr(self, "_ball_img"):
-                self.clickable._ball_img = self._ball_img
-            if hasattr(self, "_ball_hover_img"):
-                self.clickable._ball_hover_img = self._ball_hover_img
+            if hasattr(self, "_ball_img_map"):
+                # use first available ball image as default for clickable
+                first_img = None
+                for v in self._ball_img_map.values():
+                    if v is not None:
+                        first_img = v
+                        break
+                if first_img is not None:
+                    self.clickable._ball_img = first_img
+                # hover variant if available
+                if hasattr(self, "_ball_hover_img_map"):
+                    first_hover = None
+                    for v in self._ball_hover_img_map.values():
+                        if v is not None:
+                            first_hover = v
+                            break
+                    if first_hover is not None:
+                        self.clickable._ball_hover_img = first_hover
         except Exception:
             pass
+
 
         # draw clickable ball
         try:

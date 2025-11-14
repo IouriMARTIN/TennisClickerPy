@@ -1,8 +1,9 @@
+# building.py
 from dataclasses import dataclass
 
 @dataclass
 class Building:
-    id: str
+    id: int
     name: str
     base_price: int
     count: int
@@ -22,9 +23,15 @@ class Building:
 
     @classmethod
     def from_dict(cls, d):
+        # ensure id becomes int if possible
+        bid = d.get("id", None)
+        try:
+            bid = int(bid)
+        except Exception:
+            pass
         return cls(
-            id=d["id"],
-            name=d.get("name", d["id"]),
+            id=bid,
+            name=d.get("name", bid),
             base_price=d.get("base_price", 1),
             count=d.get("count", 0),
             production_per_second=d.get("production_per_second", 0.0)
