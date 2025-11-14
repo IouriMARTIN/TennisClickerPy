@@ -55,12 +55,12 @@ class Button:
             return
 
         # fallback to default drawn button
-        color = (200,200,200)
+        color = (255, 252, 94)
         if self.pressed:
-            color = (160,160,160)
+            color = (174, 191, 75)
         elif self.hover:
-            color = (220,220,220)
-        pygame.draw.rect(screen, color, self.rect, border_radius=6)
+            color = (242, 255, 168)
+        pygame.draw.rect(screen, color, self.rect, border_radius=15)
         txt = self.font.render(self.text, True, (0,0,0))
         tw, th = txt.get_size()
         screen.blit(

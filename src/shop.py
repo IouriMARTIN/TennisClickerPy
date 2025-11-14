@@ -5,6 +5,14 @@ from building import Building
 from upgrade import Upgrade
 from ball_entity import BallEntity
 
+def set_surface_alpha(surface, opacity):
+        """Return a copy of surface with the given opacity (0..255)."""
+        if surface is None:
+            return None
+        s = surface.copy()
+        s.set_alpha(opacity)
+        return s
+
 class Shop:
     def __init__(self, player, screen_width=1280, screen_height=720):
         self.player = player
@@ -262,12 +270,31 @@ class Shop:
                 70
             )
 
-            # Card background
+            # --- Hover detection ---
+            mx, my = pygame.mouse.get_pos()
+            hover = rect.collidepoint(mx, my)
+
+            # --- Check affordability ---
+            affordable = self.player.points >= b.price_next()
+
+            # --- Opacity logic ---
+            if affordable:
+                if hover:
+                    alpha = 255
+                else:
+                    alpha = 200
+            else:
+                alpha = 150
+
+            # --- Draw card with opacity ---
             card = self.building_images.get(bid)
             if card:
-                screen.blit(card, rect)
+                card_mod = set_surface_alpha(card, alpha)
+                screen.blit(card_mod, rect)
             else:
-                pygame.draw.rect(screen, (60, 60, 60), rect, border_radius=8)
+                # fallback rectangle
+                pygame.draw.rect(screen, (60, 60, 60), rect, border_radius=10)
+
 
             # Name (centered)
             name_surf = self.font.render(b.name, True, (255, 255, 255))
@@ -275,7 +302,7 @@ class Shop:
             screen.blit(name_surf, name_rect)
 
             # Price (bottom left)
-            price = self.font.render(f"{b.price_next()}$", True, (255, 220, 100))
+            price = self.font.render(f"{b.price_next()}pts", True, (255, 220, 100))
             screen.blit(price, (rect.x + 12, rect.bottom - 32))
 
             # Count (bottom right in brown)
@@ -296,7 +323,24 @@ class Shop:
                 60
             )
 
-            pygame.draw.rect(screen, (80, 60, 120), rect, border_radius=10)
+            # --- HOVER ---
+            mx, my = pygame.mouse.get_pos()
+            hover = rect.collidepoint(mx, my)
+
+            # --- AFFORDABILITY ---
+            affordable = self.player.points >= u.price
+
+            # --- OPACITY ---
+            if affordable:
+                alpha = 255 if hover else 200
+            else:
+                alpha = 150              
+
+            # --- Background (custom opacity) ---
+            upgrade_bg = pygame.Surface((rect.w, rect.h), pygame.SRCALPHA)
+            upgrade_bg.fill((80, 60, 120))
+            upgrade_bg = set_surface_alpha(upgrade_bg, alpha)
+            screen.blit(upgrade_bg, rect)
 
             # Name centered
             title = self.font.render(u.name, True, (255, 255, 255))
@@ -304,7 +348,16 @@ class Shop:
             screen.blit(title, trect)
 
             # Price bottom left
-            price = self.font.render(f"{u.price}$", True, (255, 220, 100))
+            price = self.font.render(f"{u.price}pts", True, (255, 220, 100))
+            screen.blit(price, (rect.x + 12, rect.bottom - 28))
+
+            # Name centered
+            title = self.font.render(u.name, True, (255, 255, 255))
+            trect = title.get_rect(center=(rect.centerx, rect.y + 20))
+            screen.blit(title, trect)
+
+            # Price bottom left
+            price = self.font.render(f"{u.price}pts", True, (255, 220, 100))
             screen.blit(price, (rect.x + 12, rect.bottom - 28))
 
     def to_dict(self):
